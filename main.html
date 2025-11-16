@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Air Force Chain of Command</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #050711;
+      --bg-elevated: #0c1222;
+      --accent: #4f8cff;
+      --line: #28324a;
+      --text: #f5f7ff;
+      --text-soft: #b7bed8;
+      --radius: 10px;
+      --radius-pill: 999px;
+    }
+
+    /* PAGE LOCKED – NO GLOBAL SCROLL */
+    html, body {
+      height: 100%;
+      overflow: hidden !important;
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at top left, #10193a 0, #050711 45%);
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+    }
+
+    .page-shell {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 24px;
+      box-sizing: border-box;
+    }
+
+    /* HEADER (STATIC) */
+    header {
+      flex: 0 0 auto;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge {
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: var(--radius-pill);
+      background: rgba(255,255,255,0.05);
+      color: var(--text-soft);
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text-soft);
+      max-width: 520px;
+    }
+
+    .legend {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .legend-item {
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.03);
+    }
+
+    /* SCROLLABLE CHAIN CONTAINER */
+    .tree-wrapper {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      overflow-x: auto;
+      padding: 16px;
+      background: rgba(15, 23, 42, 0.88);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      box-shadow: 0 22px 46px rgba(0,0,0,0.55);
+    }
+
+    /* TREE LAYOUT */
+    .tree {
+      margin: 0;
+      padding: 0 0 0 6px;
+      list-style: none;
+      position: relative;
+      min-width: 1000px;
+      font-size: 13px;
+    }
+
+    .tree ul {
+      padding-left: 26px;
+      list-style: none;
+      margin: 4px 0 0;
+      position: relative;
+    }
+
+    .tree ul::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 10px;
+      left: 10px;
+      border-left: 1px dashed var(--line);
+      opacity: 0.65;
+    }
+
+    .tree li {
+      margin: 0;
+      padding: 8px 0 8px 16px;
+      position: relative;
+    }
+
+    .tree li::before {
+      content: "";
+      position: absolute;
+      top: 18px;
+      left: 10px;
+      width: 12px;
+      border-top: 1px dashed var(--line);
+      opacity: 0.65;
+    }
+
+    .tree li:last-child::after {
+      content: "";
+      position: absolute;
+      left: 10px;
+      top: 20px;
+      bottom: 0;
+      background: linear-gradient(to bottom, rgba(15,23,42,0.9), transparent);
+      width: 1px;
+    }
+
+    /* NODE STYLING */
+    .node {
+      display: inline-flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 6px 10px;
+      border-radius: var(--radius);
+      background: radial-gradient(circle at top left, #17233f 0, #0c1222 40%, #070b16 100%);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.6);
+      transition: transform 0.12s ease-out,
+                  box-shadow 0.12s ease-out,
+                  border-color 0.12s ease-out,
+                  background 0.12s ease-out;
+      position: relative;
+    }
+
+    .node::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(circle at top left, rgba(79,140,255,0.55), transparent 55%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.12s ease-out;
+    }
+
+    .node:hover {
+      transform: translateY(-2px);
+      border-color: rgba(129,140,248,0.8);
+      background: radial-gradient(circle at top left, #22335d 0, #0b1020 45%, #050812 100%);
+      box-shadow: 0 18px 36px rgba(0,0,0,0.75);
+    }
+
+    .node:hover::after {
+      opacity: 0.55;
+    }
+
+    .node-title {
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .node-sub {
+      font-size: 11px;
+      color: var(--text-soft);
+      max-width: 480px;
+      white-space: normal;
+    }
+
+    .node-pill {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148,163,184,0.45);
+      background: rgba(15,23,42,0.95);
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .category-node {
+      background: linear-gradient(135deg, #1f2e5a, #27407a);
+      border-color: rgba(129,140,248,0.9);
+      box-shadow: 0 16px 34px rgba(30,64,175,0.6);
+    }
+
+    .category-node .node-title {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .small {
+      font-size: 11px;
+    }
+
+    @media (max-width: 900px) {
+      .page-shell {
+        padding: 14px 10px;
+      }
+      h1 {
+        font-size: 18px;
+      }
+      .subtitle {
+        max-width: 100%;
+      }
+      .tree-wrapper {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-shell">
+    <header>
+      <h1>Air Force Chain of Command <span class="badge">SECWAR → Divisions & Teams</span></h1>
+      <p class="subtitle">
+        Flow of authority and rank from the Secretary of War down through SECAF, CSAF, officer and enlisted chains,
+        departments, and every Air Force division/team.
+      </p>
+      <div class="legend">
+        <span class="legend-item">Blue cards = command / category</span>
+        <span class="legend-item">Dark cards = rank, department, or team</span>
+        <span class="legend-item">Only this panel scrolls</span>
+      </div>
+    </header>
+
+    <div class="tree-wrapper">
+      <ul class="tree">
+        <li>
+          <span class="node category-node">
+            <span class="node-title">[HQ] Secretary of War (SECWAR) - BLOXYMORON</span>
+            <span class="node-sub">Overall military policy and top of this branch.</span>
+          </span>
+          <ul>
+            <li>
+              <span class="node">
+                <span class="node-title">
+                  [HQ] Secretary of Air Force (SECAF) - V3GE
+                  <span class="node-pill">Service Secretary</span>
+                </span>
+                <span class="node-sub">
+                  Leads the Air Force; dual-hatted as Federal Aviation Administrator (civil + military airspace).
+                </span>
+              </span>
+              <ul>
+                <li>
+                  <span class="node">
+                    <span class="node-title">
+                      [HQ] Chief of Staff of the Air Force (CSAF)
+                      <span class="node-pill">Senior Uniformed Officer</span>
+                    </span>
+                    <span class="node-sub">
+                      Commands the Air Force on behalf of SECAF and oversees all ranks, departments, and teams.
+                    </span>
+                  </span>
+                  <ul>
+                    <!-- OFFICER CHAIN -->
+                    <li>
+                      <span class="node category-node">
+                        <span class="node-title">Officer Chain of Command</span>
+                        <span class="node-sub small">
+                          Command progression; colonels and below hold direct control of departments and divisions.
+                        </span>
+                      </span>
+                      <ul>
+                        <li>
+                          <span class="node">
+                            <span class="node-title">General of the Air Force (5-Star)</span>
+                            <span class="node-sub small">Highest operational commander under CSAF.</span>
+                          </span>
+                          <ul>
+                            <li>
+                              <span class="node">
+                                <span class="node-title">General (Gen)</span>
+                                <span class="node-sub small">Leads major joint or theater commands.</span>
+                              </span>
+                              <ul>
+                                <li>
+                                  <span class="node">
+                                    <span class="node-title">Lieutenant General (LtGen)</span>
+                                    <span class="node-sub small">Leads numbered major commands.</span>
+                                  </span>
+                                  <ul>
+                                    <li>
+                                      <span class="node">
+                                        <span class="node-title">Major General (MajGen)</span>
+                                        <span class="node-sub small">Deputy major commands and large formations.</span>
+                                      </span>
+                                      <ul>
+                                        <li>
+                                          <span class="node">
+                                            <span class="node-title">Brigadier General (BrigGen)</span>
+                                            <span class="node-sub small">Assistant commanders and special directorates.</span>
+                                          </span>
+                                          <ul>
+                                            <li>
+                                              <span class="node">
+                                                <span class="node-title">Colonel (Col)</span>
+                                                <span class="node-sub small">
+                                                  Wing, department, and major division commanders.
+                                                </span>
+                                              </span>
+                                              <ul>
+                                                <li>
+                                                  <span class="node category-node">
+                                                    <span class="node-title">Colonel-Level Departments</span>
+                                                    <span class="node-sub small">
+                                                      Core organizational units; divisions and teams hang from these.
+                                                    </span>
+                                                  </span>
+                                                  <ul>
+                                                    <!-- COAFD -->
+                                                    <li>
+                                                      <span class="node">
+                                                        <span class="node-title">
+                                                          COAFD — Commissioned Officers AF Department
+                                                          <span class="node-pill">Commander: Colonel</span>
+                                                        </span>
+                                                        <span class="node-sub small">
+                                                          Holds and manages the officer corps (2dLt+).
+                                                        </span>
+                                                      </span>
+                                                      <ul>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Research Team</span>
+                                                            <span class="node-sub small">
+                                                              Join: A1C+ | Command: Major (Maj)+<br>
+                                                              Focus: research projects, scientists, officer scientists.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Targeting & Intelligence Team</span>
+                                                            <span class="node-sub small">
+                                                              Join: SrA+ | Command: Major (Maj)+<br>
+                                                              Targeting Officer / Analyst, Intelligence Officer / Analyst,
+                                                              Operations Intelligence Specialist, Geospatial Intelligence Analyst,
+                                                              Cryptologic Language Analyst, Airborne Cryptologic Linguist.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                      </ul>
+                                                    </li>
+
+                                                    <!-- MAFD -->
+                                                    <li>
+                                                      <span class="node">
+                                                        <span class="node-title">
+                                                          MAFD — Main Air Force Department
+                                                          <span class="node-pill">Commander: Lieutenant Colonel</span>
+                                                        </span>
+                                                        <span class="node-sub small">
+                                                          Core combat and operational units; minimum rank AB+.
+                                                        </span>
+                                                      </span>
+                                                      <ul>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Combat & Security Team</span>
+                                                            <span class="node-sub small">
+                                                              Join: A1C+ | Command: Captain (Capt)+<br>
+                                                              Security Specialist, Military Police, Combat Information Specialist,
+                                                              Tactical Air Control Party Specialist.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Operations Team</span>
+                                                            <span class="node-sub small">
+                                                              Join: A1C+ | Command: Colonel (Col)<br>
+                                                              Operations Analyst, Operations Support Officer, Strategic Planner,
+                                                              Strategic Communications Officer, Protocol Officer.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Pilot Operations</span>
+                                                            <span class="node-sub small">
+                                                              Join: A1C+ (trainees / support roles)<br>
+                                                              Command: Lieutenant Colonel (LtCol)<br>
+                                                              All pilot and flight-line leadership.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                      </ul>
+                                                    </li>
+
+                                                    <!-- LUOAFD -->
+                                                    <li>
+                                                      <span class="node">
+                                                        <span class="node-title">
+                                                          LUOAFD — Logistics, Utility & Operations Department
+                                                          <span class="node-pill">Commander: Major</span>
+                                                        </span>
+                                                        <span class="node-sub small">
+                                                          Logistics backbone, utilities, and operational support; min rank A1C+.
+                                                        </span>
+                                                      </span>
+                                                      <ul>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Engineering & Logistics Team</span>
+                                                            <span class="node-sub small">
+                                                              Join: A1C+ | Command: Major (Maj)+<br>
+                                                              Civil Engineer Officer, Vehicle Maintenance Technician,
+                                                              Air Transportation Specialist, Mobility Officer,
+                                                              Aircraft Fuel Systems Specialist, Contracting Specialist,
+                                                              Contracting Officer, Logistics Readiness Officer.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Measurement & Technical Team</span>
+                                                            <span class="node-sub small">
+                                                              Join: A1C+ | Command: Captain (Capt)+<br>
+                                                              Precision Measurement Equipment Laboratory Technician,
+                                                              Radar Systems Specialist, Nuclear Operations Officer.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Environmental Science Team</span>
+                                                            <span class="node-sub small">
+                                                              Join: A1C+ | Command: Major (Maj)+<br>
+                                                              Environmental Health Officer, Biological Sciences Officer.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Finance & Admin Team</span>
+                                                            <span class="node-sub small">
+                                                              Join: A1C+ | Command: Major (Maj)+<br>
+                                                              Financial Management Officer, USN Human Resources Officer,
+                                                              Historian, Band Officer.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                      </ul>
+                                                    </li>
+
+                                                    <!-- MP -->
+                                                    <li>
+                                                      <span class="node">
+                                                        <span class="node-title">
+                                                          MP — Military Police
+                                                          <span class="node-pill">Commander: Captain</span>
+                                                        </span>
+                                                        <span class="node-sub small">
+                                                          Law enforcement and order; minimum rank SSgt+ to join MP corps.
+                                                        </span>
+                                                      </span>
+                                                    </li>
+
+                                                    <!-- AFSOC -->
+                                                    <li>
+                                                      <span class="node">
+                                                        <span class="node-title">
+                                                          AFSOC — Air Force Special Operations Command
+                                                          <span class="node-pill">Commander: Colonel - cwt428</span>
+                                                        </span>
+                                                        <span class="node-sub small">
+                                                          Special operations and high-risk missions; min rank SrA+.
+                                                        </span>
+                                                      </span>
+                                                      <ul>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Special Operations Team</span>
+                                                            <span class="node-sub small">
+                                                              Join: SrA+ | Command: Lieutenant Colonel (LtCol)+<br>
+                                                              Special Operations, Pararescue Specialist, Combat Controller,
+                                                              Special Tactics Officer, Explosive Ordnance Disposal Officer,
+                                                              Explosive Ordnance Disposal Technical.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                      </ul>
+                                                    </li>
+
+                                                    <!-- SF -->
+                                                    <li>
+                                                      <span class="node">
+                                                        <span class="node-title">
+                                                          SF — Security Forces
+                                                          <span class="node-pill">Commander: Major</span>
+                                                        </span>
+                                                        <span class="node-sub small">
+                                                          Installation security and force protection; min rank A1C+.
+                                                        </span>
+                                                      </span>
+                                                      <ul>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Combat & Security Team (SF Element)</span>
+                                                            <span class="node-sub small">
+                                                              Base defense, gates, patrols, and rapid security response.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                      </ul>
+                                                    </li>
+
+                                                    <!-- AETC -->
+                                                    <li>
+                                                      <span class="node">
+                                                        <span class="node-title">
+                                                          Air Education and Training Command (AETC)
+                                                          <span class="node-pill">Education & Training HQ</span>
+                                                        </span>
+                                                        <span class="node-sub small">
+                                                          Head of Education & Training – Colonel<br>
+                                                          Chief of Education – Lieutenant Colonel<br>
+                                                          Officer of Education – Captain<br>
+                                                          Chief of Training – Major<br>
+                                                          Officer of Training – First Lieutenant
+                                                        </span>
+                                                      </span>
+                                                      <ul>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Education & Training Team</span>
+                                                            <span class="node-sub small">
+                                                              Instructor in Training → Instructor → Drill Instructor → Senior Drill Instructor → 
+                                                              Master Drill Instructor → Head Drill Instructor.<br>
+                                                              Education & Training Member → Education & Training Officer.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Recruitment Team</span>
+                                                            <span class="node-sub small">
+                                                              Join: A1C+ | Command: Captain (Capt)+<br>
+                                                              Recruiter in Training → Recruiter → Senior Recruiter →
+                                                              Master Recruiter → Head of Recruiters.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                      </ul>
+                                                    </li>
+
+                                                    <!-- Air Traffic Authority -->
+                                                    <li>
+                                                      <span class="node">
+                                                        <span class="node-title">
+                                                          Air Traffic & Aviation Authority
+                                                          <span class="node-pill">Reports to SECAF</span>
+                                                        </span>
+                                                        <span class="node-sub small">
+                                                          SECAF acts as Federal Aviation Administrator over national airspace.
+                                                        </span>
+                                                      </span>
+                                                      <ul>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Air Traffic Team</span>
+                                                            <span class="node-sub small">
+                                                              Join: A1C+ | Command: SECAF (as FAA Administrator)<br>
+                                                              Air Traffic Control, Air Traffic Control Radar Maintenance Technician,
+                                                              Air Traffic Control Radar Technician, Air Traffic Controller.<br>
+                                                              Controls combined civil + military airspace in-game.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                      </ul>
+                                                    </li>
+
+                                                    <!-- Cross-cutting technical divisions -->
+                                                    <li>
+                                                      <span class="node">
+                                                        <span class="node-title">
+                                                          Aerospace, Space & Cyber Divisions
+                                                          <span class="node-pill">Technical Commands</span>
+                                                        </span>
+                                                        <span class="node-sub small">
+                                                          Cross-functional technical divisions drawing from multiple departments.
+                                                        </span>
+                                                      </span>
+                                                      <ul>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Aircrew Team</span>
+                                                            <span class="node-sub small">
+                                                              Join: A1C+ | Command: Major (Maj)+<br>
+                                                              Aircrew Flight Equipment Officer, Aircrew Flight Equipment Specialist,
+                                                              Airborne Battle Management Systems Operator, Airborne Mission Systems Specialist,
+                                                              Aircraft Loadmaster, Loadmaster, Flight Engineer.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Space Operations Team</span>
+                                                            <span class="node-sub small">
+                                                              Join: SrA+ | Command: Lieutenant Colonel (LtCol)+<br>
+                                                              Space Surveillance Technician, Space Systems Operator.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Information & Cyber Team</span>
+                                                            <span class="node-sub small">
+                                                              Join: A1C+ | Command: Major (Maj)+<br>
+                                                              Information Management Officer, Information Assurance Officer,
+                                                              Information Operations Officer, Information Technology Specialist,
+                                                              Network Operations Officer, Communications Officer, Cyber Operations Officer.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Aerospace & Maintenance Team</span>
+                                                            <span class="node-sub small">
+                                                              Join: A1C+ | Command: Lieutenant Colonel (LtCol)+<br>
+                                                              Aerospace Propulsion Technician, Aerospace Physiology Technician,
+                                                              Aerospace Maintenance Technician, Aircraft Fuel Systems Specialist,
+                                                              Aircraft Armament Systems Specialist, Aircraft Maintenance Technician,
+                                                              Aerospace Engineer.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Medical & Health Team</span>
+                                                            <span class="node-sub small">
+                                                              Join: A1C+ | Command: Colonel (Col)<br>
+                                                              Public Health Officer, Environmental Health Officer, Bioenvironmental Engineer,
+                                                              Medical Service Corps Officer, Medical Officer, Mental Health Specialist,
+                                                              Dental Officer, Religious Affairs Specialist, Chaplain.
+                                                            </span>
+                                                          </span>
+                                                        </li>
+                                                      </ul>
+                                                    </li>
+                                                  </ul>
+                                                </li>
+                                              </ul>
+                                            </li>
+
+                                            <!-- FIELD GRADES BELOW COLONEL -->
+                                            <li>
+                                              <span class="node">
+                                                <span class="node-title">Lieutenant Colonel (LtCol)</span>
+                                                <span class="node-sub small">
+                                                  Group and large-squadron commanders; often lead divisions and major teams.
+                                                </span>
+                                              </span>
+                                            </li>
+                                            <li>
+                                              <span class="node">
+                                                <span class="node-title">Major (Maj)</span>
+                                                <span class="node-sub small">
+                                                  Squadron / division commanders; many specialist teams are commanded at this level.
+                                                </span>
+                                              </span>
+                                            </li>
+                                          </ul>
+                                        </li>
+
+                                        <!-- COMPANY GRADE OFFICERS -->
+                                        <li>
+                                          <span class="node">
+                                            <span class="node-title">Captain (Capt)</span>
+                                            <span class="node-sub small">
+                                              Company/flight commanders and team leads (MP, Recruitment, Combat & Security, etc.).
+                                            </span>
+                                          </span>
+                                          <ul>
+                                            <li>
+                                              <span class="node">
+                                                <span class="node-title">First Lieutenant (1stLt)</span>
+                                                <span class="node-sub small">
+                                                  Deputies and officers-in-charge inside departments and teams.
+                                                </span>
+                                              </span>
+                                              <ul>
+                                                <li>
+                                                  <span class="node">
+                                                    <span class="node-title">Second Lieutenant (2dLt)</span>
+                                                    <span class="node-sub small">
+                                                      Entry-level officers; lead small elements and sections.
+                                                    </span>
+                                                  </span>
+                                                  <ul>
+                                                    <li>
+                                                      <span class="node">
+                                                        <span class="node-title">Officer In Training (OIT)</span>
+                                                        <span class="node-sub small">
+                                                          Officer candidates; on completion they commission as 2dLt.
+                                                        </span>
+                                                      </span>
+                                                    </li>
+                                                  </ul>
+                                                </li>
+                                              </ul>
+                                            </li>
+                                          </ul>
+                                        </li>
+                                      </ul>
+                                    </li>
+                                  </ul>
+                                </li>
+                              </ul>
+                            </li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+
+                    <!-- ENLISTED CHAIN -->
+                    <li>
+                      <span class="node category-node">
+                        <span class="node-title">Enlisted Chain of Command</span>
+                        <span class="node-sub small">
+                          Progression for enlisted personnel; most specialist teams open at A1C+.
+                        </span>
+                      </span>
+                      <ul>
+                        <li>
+                          <span class="node">
+                            <span class="node-title">Chief Master Sergeant of the Air Force (CMSAF)</span>
+                            <span class="node-sub small">
+                              Senior enlisted advisor to CSAF and SECAF; top of the enlisted structure.
+                            </span>
+                          </span>
+                          <ul>
+                            <li>
+                              <span class="node">
+                                <span class="node-title">Command Chief Master Sergeant (CoCMSgt)</span>
+                                <span class="node-sub small">
+                                  Senior enlisted for major commands and large wings.
+                                </span>
+                              </span>
+                              <ul>
+                                <li>
+                                  <span class="node">
+                                    <span class="node-title">Chief Master Sergeant (CMSgt)</span>
+                                    <span class="node-sub small">
+                                      Base / group senior enlisted leaders.
+                                    </span>
+                                  </span>
+                                  <ul>
+                                    <li>
+                                      <span class="node">
+                                        <span class="node-title">Senior Master Sergeant (SMSgt)</span>
+                                        <span class="node-sub small">Superintendents and top NCOs.</span>
+                                      </span>
+                                      <ul>
+                                        <li>
+                                          <span class="node">
+                                            <span class="node-title">First Sergeant (1Sgt)</span>
+                                            <span class="node-sub small">Unit senior enlisted advisor.</span>
+                                          </span>
+                                          <ul>
+                                            <li>
+                                              <span class="node">
+                                                <span class="node-title">Master Sergeant (MSgt)</span>
+                                                <span class="node-sub small">Flight chiefs and NCOICs.</span>
+                                              </span>
+                                              <ul>
+                                                <li>
+                                                  <span class="node">
+                                                    <span class="node-title">Technical Sergeant (TSgt)</span>
+                                                    <span class="node-sub small">Section NCOs and trainers.</span>
+                                                  </span>
+                                                  <ul>
+                                                    <li>
+                                                      <span class="node">
+                                                        <span class="node-title">Staff Sergeant (SSgt)</span>
+                                                        <span class="node-sub small">First-line supervisors.</span>
+                                                      </span>
+                                                      <ul>
+                                                        <li>
+                                                          <span class="node">
+                                                            <span class="node-title">Senior Airman (SrA)</span>
+                                                            <span class="node-sub small">
+                                                              Senior enlisted operators and specialists.
+                                                            </span>
+                                                          </span>
+                                                          <ul>
+                                                            <li>
+                                                              <span class="node">
+                                                                <span class="node-title">Airman First Class (A1C)</span>
+                                                                <span class="node-sub small">
+                                                                  Fully trained airmen; minimum for most teams (Research, Cyber, ATC, etc.).
+                                                                </span>
+                                                              </span>
+                                                              <ul>
+                                                                <li>
+                                                                  <span class="node">
+                                                                    <span class="node-title">Airman (AM)</span>
+                                                                    <span class="node-sub small">Junior enlisted.</span>
+                                                                  </span>
+                                                                  <ul>
+                                                                    <li>
+                                                                      <span class="node">
+                                                                        <span class="node-title">Airman Basic (AB)</span>
+                                                                        <span class="node-sub small">Entry-level recruit.</span>
+                                                                      </span>
+                                                                      <ul>
+                                                                        <li>
+                                                                          <span class="node">
+                                                                            <span class="node-title">VET (Veteran)</span>
+                                                                            <span class="node-sub small">
+                                                                              Honorary status for former personnel; no further promotion.
+                                                                            </span>
+                                                                          </span>
+                                                                        </li>
+                                                                      </ul>
+                                                                    </li>
+                                                                  </ul>
+                                                                </li>
+                                                              </ul>
+                                                            </li>
+                                                          </ul>
+                                                        </li>
+                                                      </ul>
+                                                    </li>
+                                                  </ul>
+                                                </li>
+                                              </ul>
+                                            </li>
+                                          </ul>
+                                        </li>
+                                      </ul>
+                                    </li>
+                                  </ul>
+                                </li>
+                              </ul>
+                            </li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+
+                    <!-- STAFF / MODERATION CHAIN -->
+                    <li>
+                      <span class="node category-node">
+                        <span class="node-title">Staff / Moderation Chain</span>
+                        <span class="node-sub small">
+                          Parallel authority structure for server staff and moderators.
+                        </span>
+                      </span>
+                      <ul>
+                        <li>
+                          <span class="node">
+                            <span class="node-title">M-7 Moderator List</span>
+                            <span class="node-sub small">Top-tier staff authority.</span>
+                          </span>
+                          <ul>
+                            <li>
+                              <span class="node">
+                                <span class="node-title">M-6 Moderator</span>
+                              </span>
+                              <ul>
+                                <li>
+                                  <span class="node">
+                                    <span class="node-title">M-5 Manager</span>
+                                  </span>
+                                  <ul>
+                                    <li>
+                                      <span class="node">
+                                        <span class="node-title">M-4 HeadMod</span>
+                                      </span>
+                                      <ul>
+                                        <li>
+                                          <span class="node">
+                                            <span class="node-title">M-3 Admin</span>
+                                          </span>
+                                          <ul>
+                                            <li>
+                                              <span class="node">
+                                                <span class="node-title">M-2 Guardian</span>
+                                              </span>
+                                              <ul>
+                                                <li>
+                                                  <span class="node">
+                                                    <span class="node-title">M-1 Expert</span>
+                                                  </span>
+                                                  <ul>
+                                                    <li>
+                                                      <span class="node">
+                                                        <span class="node-title">MOD Trial</span>
+                                                      </span>
+                                                    </li>
+                                                  </ul>
+                                                </li>
+                                              </ul>
+                                            </li>
+                                          </ul>
+                                        </li>
+                                      </ul>
+                                    </li>
+                                  </ul>
+                                </li>
+                              </ul>
+                            </li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+
+                    <!-- SENATE OVERSIGHT -->
+                    <li>
+                      <span class="node category-node">
+                        <span class="node-title">Senate Oversight</span>
+                        <span class="node-sub small">
+                          Controls senior promotions, discharges, and top HQ appointments.
+                        </span>
+                      </span>
+                      <ul>
+                        <li>
+                          <span class="node">
+                            <span class="node-title">Promotions Requiring Approval</span>
+                            <span class="node-sub small">
+                              Promotions to Brigadier General (BrigGen) and above.
+                            </span>
+                          </span>
+                        </li>
+                        <li>
+                          <span class="node">
+                            <span class="node-title">Demotions / Discharges Requiring Approval</span>
+                            <span class="node-sub small">
+                              Colonel (Col) and above.
+                            </span>
+                          </span>
+                        </li>
+                        <li>
+                          <span class="node">
+                            <span class="node-title">Appointments Requiring Approval</span>
+                            <span class="node-sub small">
+                              General of the Air Force<br>
+                              [HQ] Chief of Staff of the Air Force<br>
+                              [HQ] Secretary of Air Force<br>
+                              [HQ] Secretary of War
+                            </span>
+                          </span>
+                        </li>
+                      </ul>
+                    </li>
+
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>
